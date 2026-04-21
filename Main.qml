@@ -16,7 +16,7 @@ Rectangle {
     // -------------------------------------------------------------------------
     readonly property real scaleFactor: Math.max(0.5, Math.min(width / 1920, height / 1080))
     readonly property real baseUnit: 8 * scaleFactor
-    
+
     // -------------------------------------------------------------------------
     // Theme Constants (Rose Pine) & Style Tokens
     // -------------------------------------------------------------------------
@@ -28,7 +28,7 @@ Rectangle {
     readonly property color mOnSurfaceVariant: config.mOnSurfaceVariant || "#a79ab0"
     readonly property color mError: config.mError || "#e9899d"
     readonly property color mOutline: config.mOutline || "#342c42"
-    
+
     // Responsive sizes
     readonly property real radiusL: 20 * scaleFactor
     readonly property real fontSizeM: 11 * scaleFactor
@@ -36,6 +36,9 @@ Rectangle {
     readonly property real fontSizeXL: 16 * scaleFactor
     readonly property real fontSizeXXL: 18 * scaleFactor
     readonly property real fontSizeClock: 42 * scaleFactor
+
+    readonly property real borderS:  1 * scaleFactor
+    readonly property real borderM:  2 * scaleFactor
 
     // Configurable Background
     readonly property string backgroundPath: config.background || "Assets/background.png"
@@ -45,7 +48,7 @@ Rectangle {
         family: "Noto Sans",
         pixelSize: 14 * scaleFactor
     })
-    
+
     LayoutMirroring.enabled: Qt.locale().textDirection == Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
@@ -82,7 +85,7 @@ Rectangle {
             GradientStop { position: 1.0; color: Qt.rgba(0,0,0,0.7) } // Darker bottom
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // Top Card: User Info & Time
     // -------------------------------------------------------------------------
@@ -91,7 +94,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: parent.height * 0.12
         anchors.horizontalCenter: parent.horizontalCenter
-        
+
         width: Math.max(400 * scaleFactor, Math.min(parent.width * 0.70, 550 * scaleFactor))
         height: 120 * scaleFactor
         radius: root.radiusL
@@ -111,12 +114,12 @@ Rectangle {
                 Layout.preferredWidth: 70 * scaleFactor
                 Layout.preferredHeight: 70 * scaleFactor
                 Layout.alignment: Qt.AlignVCenter
-                
+
                 width: 70 * scaleFactor
                 height: 70 * scaleFactor
-                
+
                 property int tryIndex: 0
-                
+
                 property string primaryUser: userModel.lastUser
                 property string currentIcon: ""
                 property string currentHome: ""
@@ -128,7 +131,7 @@ Rectangle {
                     model: userModel
                     delegate: Item {
                         visible: false
-                        
+
                         // Capture first user name as fallback
                         Binding {
                             target: avatarRect
@@ -158,47 +161,47 @@ Rectangle {
                         }
                     }
                 }
-                
+
                 // Computed property for whom we are showing
                 property string displayUser: primaryUser !== "" ? primaryUser : firstUserName
                 property string displayName: currentRealName !== "" ? currentRealName : (displayUser !== "" ? displayUser : "User")
-                
+
                 // Reset try index when user changes
                 onDisplayUserChanged: {
                     tryIndex = 0
                 }
-                
+
                 // Get list of icon paths to try
                 property var iconPaths: {
                     var paths = []
                     var u = displayUser
-                    
+
                     if (u) {
                         // 1. Try path from userModel (if any)
                         if (currentIcon && currentIcon !== "") {
                             var p = currentIcon
-                            if (p.indexOf("://") === -1 && p.charAt(0) === '/') 
+                            if (p.indexOf("://") === -1 && p.charAt(0) === '/')
                                 p = "file://" + p
                             paths.push(p)
                         }
-                        
+
                         // 2. Try home directory faces
                         if (currentHome) {
                             paths.push("file://" + currentHome + "/.face.icon")
                             paths.push("file://" + currentHome + "/.face")
                         }
-                        
+
                         // 3. System paths
                         paths.push("file:///usr/share/sddm/faces/" + u + ".face.icon")
                         paths.push("file:///var/lib/AccountsService/icons/" + u)
                     }
-                    
+
                     // 4. Default fallback
                     paths.push("file:///usr/share/sddm/faces/.face.icon")
-                    
+
                     return paths
                 }
-                
+
                 // Circular mask for perfect circle
                 Rectangle {
                     id: avatarMask
@@ -206,7 +209,7 @@ Rectangle {
                     radius: width / 2
                     visible: false
                 }
-                
+
                 // User avatar image (circular)
                 Image {
                     id: userAvatar
@@ -221,12 +224,12 @@ Rectangle {
                     smooth: true
                     visible: status === Image.Ready
                     asynchronous: true
-                    
+
                     layer.enabled: true
                     layer.effect: OpacityMask {
                         maskSource: avatarMask
                     }
-                    
+
                     // Try next path if current one fails
                     onStatusChanged: {
                         if (status === Image.Error && parent.tryIndex < parent.iconPaths.length - 1) {
@@ -234,7 +237,7 @@ Rectangle {
                         }
                     }
                 }
-                
+
                 // Fallback logo if user avatar not available
                 Image {
                     id: fallbackLogo
@@ -245,13 +248,13 @@ Rectangle {
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     visible: userAvatar.status !== Image.Ready && userAvatar.status !== Image.Loading
-                    
+
                     layer.enabled: true
                     layer.effect: OpacityMask {
                         maskSource: avatarMask
                     }
                 }
-                
+
                 // Circular border
                 Rectangle {
                     anchors.fill: parent
@@ -261,28 +264,28 @@ Rectangle {
                     border.width: 2 * scaleFactor
                 }
             }
-            
+
             // Text Info
             ColumnLayout {
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 2 * scaleFactor
-                
+
                 Text {
                     text: "Welcome back, " + avatarRect.displayName + "!"
                     font.pixelSize: root.fontSizeXXL
                     font.bold: true
                     color: root.mOnSurface
                 }
-                
+
                 Text {
                     text: Qt.formatDate(new Date(), "dddd, MMMM d")
                     font.pixelSize: root.fontSizeXL
                     color: root.mOnSurfaceVariant
                 }
             }
-            
+
             Item { Layout.fillWidth: true } // Spacer
-            
+
             // Clock
             Text {
                 text: Qt.formatTime(new Date(), "hh:mm")
@@ -293,7 +296,7 @@ Rectangle {
             }
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // Bottom Card: Password & Controls
     // -------------------------------------------------------------------------
@@ -302,45 +305,47 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 100 * scaleFactor
         anchors.horizontalCenter: parent.horizontalCenter
-        
+
         width: Math.min(750 * scaleFactor, parent.width * 0.9)
         height: 140 * scaleFactor
         radius: root.radiusL
         color: root.mSurface
         border.color: Qt.rgba(root.mOutline.r, root.mOutline.g, root.mOutline.b, 0.2)
         border.width: 1 * scaleFactor
-        
+
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 20 * scaleFactor
             spacing: 15 * scaleFactor
-            
+
             // Password Field Row
             RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 50 * scaleFactor
                 spacing: 15 * scaleFactor
-                
+
                 // Input Box
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    color: root.mSurfaceVariant
-                    radius: 12 * scaleFactor
-                    
+                    color: "transparent"
+                    border.color: root.mPrimary
+                    border.width: root.borderM
+                    radius: 20 * scaleFactor
+
                     TextInput {
                         id: passwordBox
                         anchors.fill: parent
                         anchors.margins: 15 * scaleFactor
                         verticalAlignment: Text.AlignVCenter
-                        
+
                         text: ""
                         echoMode: TextInput.Password
                         color: root.mOnSurface
                         font.pixelSize: 14 * scaleFactor
-                        
+
                         focus: true
-                        
+
                         onAccepted: sddm.login(userModel.lastUser, passwordBox.text, sessionModel.lastIndex)
                         Keys.onPressed: {
                             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -349,7 +354,7 @@ Rectangle {
                             }
                         }
                     }
-                    
+
                     Text {
                         anchors.fill: parent
                         anchors.margins: 15 * scaleFactor
@@ -359,46 +364,68 @@ Rectangle {
                         font.pixelSize: 14 * scaleFactor
                         visible: !passwordBox.text && !passwordBox.activeFocus
                     }
-                }
-                
-                // Login Button
-                Controls.Button {
-                    Layout.preferredWidth: 100 * scaleFactor
-                    Layout.fillHeight: true
-                    
-                    background: Rectangle {
-                        color: parent.down ? Qt.darker(root.mPrimary, 1.2) : root.mPrimary
-                        radius: 12 * scaleFactor
+
+                    // Login Button
+                    Controls.Button {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 36
+                        height: 36
+
+                        background: Rectangle {
+                            color: parent.down ? Qt.darker(root.mPrimary, 1.2) : root.mSurface
+                            radius: 20 * scaleFactor
+                        }
+
+                         icon.source: "Assets/arrow-next-symbolic.svg"
+                         icon.color: root.mOnSurface // 图标颜色
+
+                        onClicked: sddm.login(userModel.lastUser, passwordBox.text, sessionModel.lastIndex)
                     }
-                    
-                    contentItem: Text {
-                        text: "Login"
-                        font.pixelSize: 14 * scaleFactor
-                        font.bold: true
-                        color: root.mOnPrimary
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    
-                    onClicked: sddm.login(userModel.lastUser, passwordBox.text, sessionModel.lastIndex)
                 }
             }
-            
+
             // Controls Row
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 10 * scaleFactor
-                
+
                 // Session List
                 Controls.ComboBox {
                    id: sessionList
                    model: sessionModel
                    textRole: "name"
                    currentIndex: sessionModel.lastIndex
-                   
-                   Layout.preferredWidth: 200 * scaleFactor
+
+                   Layout.preferredWidth: 100 * scaleFactor
                    Layout.preferredHeight: 36 * scaleFactor
-                   
+                   Layout.fillWidth: true
+
+                   indicator: Canvas {
+                       id: canvas
+                       x: sessionList.width - width - sessionList.rightPadding
+                       y: sessionList.topPadding + (sessionList.availableHeight - height) / 2
+                       width: 12
+                       height: 8
+                       contextType: "2d"
+
+                       Connections {
+                           target: sessionList
+                           function onPressedChanged() { canvas.requestPaint(); }
+                       }
+
+                       onPaint: {
+                           context.reset();
+                           context.moveTo(0, 0);
+                           context.lineTo(width, 0);
+                           context.lineTo(width / 2, height);
+                           context.closePath();
+                           context.fillStyle = sessionList.pressed ? root.mOnSurfaceVariant : root.mOnSurface;
+                           context.fill();
+                       }
+                   }
+
                    delegate: Controls.ItemDelegate {
                        width: parent.width
                        text: model.name || ""
@@ -413,12 +440,14 @@ Rectangle {
                            color: parent.highlighted ? root.mSurfaceVariant : "transparent"
                        }
                    }
-                   
+
                    background: Rectangle {
                        color: root.mSurfaceVariant
-                       radius: 8 * scaleFactor
+                       radius: 20 * scaleFactor
+                       border.color: root.mPrimary
+                       border.width: root.borderS
                    }
-                   
+
                    contentItem: Text {
                        leftPadding: 10 * scaleFactor
                        text: sessionList.displayText || ""
@@ -444,39 +473,36 @@ Rectangle {
                        background: Rectangle {
                            border.color: root.mOutline
                            color: root.mSurface
-                           radius: 4 * scaleFactor
+                           radius: 20 * scaleFactor
                        }
                    }
                }
-                
-                Item { Layout.fillWidth: true } // Spacer
-                
+
                 // Power Buttons
                 Repeater {
                     model: [
-                        { text: "Suspend", type: "suspend" },
-                        { text: "Reboot", type: "reboot" },
-                        { text: "Shutdown", type: "shutdown" }
+                        { text: "挂起", type: "suspend", icon: "Assets/system-suspend.svg" },
+                        { text: "重启", type: "reboot", icon: "Assets/system-reboot.svg" },
+                        { text: "关机", type: "shutdown", icon: "Assets/system-shutdown.svg" }
                     ]
-                    
+
                     delegate: Controls.Button {
                         text: modelData.text
                         Layout.preferredHeight: 36 * scaleFactor
                         Layout.preferredWidth: 100 * scaleFactor
-                        
+                        Layout.fillWidth: true
+                        icon.color: root.mOnSurface // 图标颜色
+                        palette.buttonText: root.mOnSurface // 字体颜色
+                        font.pixelSize: 14 * scaleFactor
+
                         background: Rectangle {
                             color: parent.down ? Qt.darker(root.mSurfaceVariant, 1.2) : root.mSurfaceVariant
-                            radius: 8 * scaleFactor
+                            radius: 20 * scaleFactor
+                            border.color: root.mPrimary
+                            border.width: root.borderS
                         }
-                        
-                        contentItem: Text {
-                            text: parent.text
-                            font.pixelSize: root.fontSizeM
-                            color: root.mOnSurface
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        
+
+                        icon.source: modelData.icon
                         onClicked: {
                             if (modelData.type === "suspend") {
                                 sddm.suspend()
@@ -491,7 +517,7 @@ Rectangle {
             }
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // Error Message
     // -------------------------------------------------------------------------
@@ -504,7 +530,7 @@ Rectangle {
         radius: root.radiusL
         color: root.mError
         visible: errorMessage.text !== ""
-        
+
         Text {
             id: errorMessage
             anchors.centerIn: parent
