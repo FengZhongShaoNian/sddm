@@ -278,7 +278,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: Qt.formatDate(new Date(), "dddd, MMMM d")
+                    text: Qt.formatDate(new Date(), "yyyy年MM月dd日")
                     font.pixelSize: root.fontSizeXL
                     color: root.mOnSurfaceVariant
                 }
